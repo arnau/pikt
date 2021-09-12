@@ -1,0 +1,17 @@
+[package]
+name = "pikchr-sys"
+version = "0.1.0"
+edition = "2018"
+authors = ["Arnau Siches <asiches@gmail.com>"]
+description = "Bindings for Pikchr"
+license-file = "LICENSE"
+keywords = ["pikchr", "pic", "ffi", "c"]
+categories = ["external-ffi-bindings", "visualization"]
+repository = "https://github.com/arnau/pikt/"
+
+[build-dependencies]
+bindgen = { version = "^0.53", default-features = false, features = ["runtime"] }
+cc = "^1.0"
+
+[dev-dependencies]
+libc = "^0.2"
