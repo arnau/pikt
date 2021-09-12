@@ -1,0 +1,22 @@
+[package]
+name = "pikt"
+version = "0.1.0"
+edition = "2018"
+authors = ["Arnau Siches <asiches@gmail.com>"]
+description = "Pikchr high-level API"
+repository = "https://github.com/arnau/pikt/"
+keywords = ["pikchr"]
+categories = ["visualization"]
+license = "MIT OR Apache-2.0"
+
+[workspace]
+members = ["pikchr-sys"]
+
+[dependencies]
+bitflags = "^1.3"
+libc = "^0.2"
+pikchr-sys = "0.1"
+thiserror = "1.0"
+
+[patch.crates-io]
+pikchr-sys = { path = "pikchr-sys" }
