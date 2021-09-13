@@ -10,7 +10,7 @@ This crate provides bindings to the raw low-level C API. For a higher-level safe
 
 ## Release support
 
-- `pikchr-sys` v0.1: `pikchr` checkout d9e1502ed74c6aabcb055cf7983c897a28cbe09c
+- `pikchr-sys` v0.1: `pikchr` checkout [d9e1502ed74c6aabcb055cf7983c897a28cbe09c](https://pikchr.org/home/timeline?c=d9e1502ed74c6aab&y=a).
 
 
 ## License
