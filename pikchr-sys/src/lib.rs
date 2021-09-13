@@ -1,8 +1,48 @@
 //! The raw bindings for `pikchr.c`.
 //!
-//! See [`render`] for a safe wrapper.
+//! Using [`pikchr`] will require manually freeing the buffer. Quoting the C source code:
 //!
-//! Using [`pikchr`] will require manually freeing the buffer.
+//! > This file implements a C-language subroutine that accepts a string
+//! > of PIKCHR language text and generates a second string of SVG output that
+//! > renders the drawing defined by the input.  Space to hold the returned
+//! > string is obtained from malloc() and should be freed by the caller.
+//! > NULL might be returned if there is a memory allocation error.
+//!
+//! The [`pikchr`] arguments are defined as follows:
+//!
+//! - `zText`: Input PIKCHR markup. Zero terminated.
+//! - `zClass`: The value to add to the SVG `class` attribute. It can be NULL.
+//! - `mFlags`: Flags to control the rendering behaviour.
+//! - `pnWidth`: The value for the SVG `width` attribute. It can be NULL.
+//! - `pnHeight`: The value for the SVG `height` attribute. It can be NULL.
+//!
+//! ## Example
+//!
+//! ```no_run
+//! let input = "box \"example\"";
+//! let mut width: c_int = 0;
+//! let mut height: c_int = 0;
+//! let input = CString::new(input)?;
+//!
+//! let res: *mut c_char = unsafe {
+//!     pikchr(
+//!         input.as_ptr() as *const c_char,
+//!         std::ptr::null(),
+//!         PIKCHR_PLAINTEXT_ERRORS,
+//!         &mut width as *mut c_int,
+//!         &mut height as *mut c_int,
+//!     )
+//! };
+//!
+//! let cstr = unsafe { CStr::from_ptr(res) };
+//! let output = String::from_utf8_lossy(cstr.to_bytes()).into_owned();
+//!
+//! unsafe { free(res as *mut c_void) };
+//! ```
+//!
+//! ## Errors
+//!
+//! If an error occurs, the _width_ will be `-1` and the buffer will contain the error message.
 include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
 
 #[cfg(test)]
