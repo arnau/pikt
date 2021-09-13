@@ -18,5 +18,5 @@ libc = "^0.2"
 pikchr-sys = "0.1"
 thiserror = "1.0"
 
-[patch.crates-io]
-pikchr-sys = { path = "pikchr-sys" }
+# [patch.crates-io]
+# pikchr-sys = { path = "pikchr-sys" }
