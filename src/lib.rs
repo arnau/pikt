@@ -4,18 +4,121 @@ use std::str::FromStr;
 use thiserror::Error;
 
 bitflags::bitflags! {
-    /// Option flags to configure the render behaviour.
+    /// Flags to configure the render behaviour.
     ///
     /// Note that `PIKCHR_PLAINTEXT_ERRORS` can't be switched off because errors
     /// are handled by pikt.
     #[derive(Default)]
-    pub struct Options: u32 {
+    pub struct Flags: u32 {
         // const PLAINTEXT_ERRORS = PIKCHR_PLAINTEXT_ERRORS;
         const DARK_MODE = PIKCHR_DARK_MODE;
     }
 }
 
+/// Represents the set of options the renderer can take.
+///
+/// Use the [`OptionsBuilder`] to construct it.
+#[derive(Debug, Clone, PartialEq)]
+pub struct Options {
+    flags: Flags,
+    width: u32,
+    height: u32,
+    class: String,
+}
+
+impl Options {
+    pub fn flags(&self) -> Flags {
+        self.flags
+    }
+
+    pub fn width(&self) -> u32 {
+        self.width
+    }
+
+    pub fn height(&self) -> u32 {
+        self.height
+    }
+
+    pub fn class(&self) -> &str {
+        &self.class
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct OptionsBuilder {
+    flags: Flags,
+    width: u32,
+    height: u32,
+    class: String,
+}
+
+impl Default for OptionsBuilder {
+    fn default() -> Self {
+        Self {
+            flags: Flags::empty(),
+            width: 0,
+            height: 0,
+            class: "pikchr".to_string(),
+        }
+    }
+}
+
+impl OptionsBuilder {
+    pub fn flags(&mut self, flags: Flags) {
+        self.flags = flags;
+    }
+
+    pub fn width(&mut self, width: u32) {
+        self.width = width;
+    }
+
+    pub fn height(&mut self, height: u32) {
+        self.height = height;
+    }
+
+    /// Replaces the entire value for `class`. See [`OptionsBuilder.classes`] to append a list of
+    /// values.
+    ///
+    /// By default it already has the value `pikchr`.
+    pub fn class(&mut self, class: &str) {
+        self.class = class.to_string();
+    }
+
+    pub fn classes(&mut self, values: &[&str]) {
+        let s = values.join(" ");
+        self.class.push_str(" ");
+        self.class.push_str(&s);
+    }
+
+    /// Builds the set of options.
+    ///
+    /// ## Example
+    ///
+    /// ```
+    /// use pikt::OptionsBuilder;
+    ///
+    /// let mut builder = OptionsBuilder::default();
+    /// builder.width(300);
+    /// builder.height(150);
+    /// builder.classes(&vec!["foo", "bar"]);
+    /// let options = builder.build();
+    ///
+    /// assert_eq!(options.width(), 300);
+    /// assert_eq!(options.class(), "pikchr foo bar");
+    /// ```
+    pub fn build(self) -> Options {
+        Options {
+            flags: self.flags,
+            width: self.width,
+            height: self.height,
+            class: self.class,
+        }
+    }
+}
+
 /// Renders the given pikchr markup as SVG.
+///
+/// Use [`render_with`] if you want to change the default options.
 ///
 /// ## Example
 ///
@@ -33,22 +136,24 @@ bitflags::bitflags! {
 /// assert!(svg.is_ok());
 /// ```
 pub fn render(input: &str) -> Result<String, PiktError> {
-    render_with(input, Options::default())
+    let options = OptionsBuilder::default().build();
+    render_with(input, options)
 }
 
 pub fn render_with(input: &str, options: Options) -> Result<String, PiktError> {
     use libc::free;
     use std::os::raw::*;
 
-    let mut width: c_int = 0;
-    let mut height: c_int = 0;
+    let mut width: c_int = options.width() as i32;
+    let mut height: c_int = options.height() as i32;
+    let class = CString::new(options.class())?;
     let input = CString::new(input)?;
 
     let res: *mut c_char = unsafe {
         pikchr(
             input.as_ptr() as *const c_char,
-            std::ptr::null(),
-            options.bits() | PIKCHR_PLAINTEXT_ERRORS,
+            class.as_ptr() as *const c_char,
+            options.flags().bits() | PIKCHR_PLAINTEXT_ERRORS,
             &mut width as *mut c_int,
             &mut height as *mut c_int,
         )
@@ -235,7 +340,7 @@ mod tests {
     #[test]
     fn simple_box() -> Result<(), PiktError> {
         let source = "box \"pikchr\"";
-        let expected = "<svg xmlns='http://www.w3.org/2000/svg' viewBox=\"0 0 112.32 76.32\">\n<path d=\"M2,74L110,74L110,2L2,2Z\"  style=\"fill:none;stroke-width:2.16;stroke:rgb(0,0,0);\" />\n<text x=\"56\" y=\"38\" text-anchor=\"middle\" fill=\"rgb(0,0,0)\" dominant-baseline=\"central\">pikchr</text>\n</svg>\n";
+        let expected = "<svg xmlns='http://www.w3.org/2000/svg' class=\"pikchr\" viewBox=\"0 0 112.32 76.32\">\n<path d=\"M2,74L110,74L110,2L2,2Z\"  style=\"fill:none;stroke-width:2.16;stroke:rgb(0,0,0);\" />\n<text x=\"56\" y=\"38\" text-anchor=\"middle\" fill=\"rgb(0,0,0)\" dominant-baseline=\"central\">pikchr</text>\n</svg>\n";
 
         let actual = render(source)?;
 
@@ -306,9 +411,13 @@ mod tests {
     #[test]
     fn box_dark_mode() -> Result<(), PiktError> {
         let source = "box \"pikchr\"";
-        let expected = "<svg xmlns='http://www.w3.org/2000/svg' viewBox=\"0 0 112.32 76.32\">\n<path d=\"M2,74L110,74L110,2L2,2Z\"  style=\"fill:none;stroke-width:2.16;stroke:rgb(255,255,255);\" />\n<text x=\"56\" y=\"38\" text-anchor=\"middle\" fill=\"rgb(255,255,255)\" dominant-baseline=\"central\">pikchr</text>\n</svg>\n";
-        let mut options = Options::default();
-        options.insert(Options::DARK_MODE);
+        let expected = "<svg xmlns='http://www.w3.org/2000/svg' class=\"pikchr\" viewBox=\"0 0 112.32 76.32\">\n<path d=\"M2,74L110,74L110,2L2,2Z\"  style=\"fill:none;stroke-width:2.16;stroke:rgb(255,255,255);\" />\n<text x=\"56\" y=\"38\" text-anchor=\"middle\" fill=\"rgb(255,255,255)\" dominant-baseline=\"central\">pikchr</text>\n</svg>\n";
+        let mut flags = Flags::default();
+        flags.insert(Flags::DARK_MODE);
+
+        let mut builder = OptionsBuilder::default();
+        builder.flags(flags);
+        let options = builder.build();
 
         let actual = render_with(source, options)?;
 
