@@ -140,6 +140,30 @@ pub fn render(input: &str) -> Result<String, PiktError> {
     render_with(input, options)
 }
 
+/// Renders the given pikchr markup as SVG with the given configuration.
+///
+/// ```
+/// use pikt::{render_with, OptionsBuilder, Flags};
+///
+/// let markup = r#"
+/// circle "1"
+/// move
+/// circle "2"
+/// arrow from first circle.end to last circle.start
+/// "#;
+/// let mut opt_builder = OptionsBuilder::default();
+/// opt_builder.flags(Flags::DARK_MODE);
+/// opt_builder.classes(&["foo", "bar"]);
+/// let options = opt_builder.build();
+/// let svg = render_with(markup, options);
+///
+/// assert!(svg.is_ok());
+/// ```
+///
+/// ## Errors
+///
+/// It can fail either because the given input has an unexpected NUL terminator or for any of the
+/// errors the native pikchr library handles. See [`PiktError`].
 pub fn render_with(input: &str, options: Options) -> Result<String, PiktError> {
     use libc::free;
     use std::os::raw::*;
