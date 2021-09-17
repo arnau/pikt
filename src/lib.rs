@@ -197,112 +197,131 @@ pub fn render_with(input: &str, options: Options) -> Result<String, PiktError> {
 }
 
 #[derive(Error, Debug, PartialEq)]
-pub enum PiktError {
+#[error("line {line}, column {column}: {reason}")]
+pub struct PiktError {
+    line: usize,
+    column: usize,
+    reason: PiktErrorReason,
+}
+
+#[derive(Error, Debug, PartialEq)]
+pub enum PiktErrorReason {
     /// Raised when the given input has a nul byte.
     #[error("incompatible input. Nul bytes are not allowed.")]
-    IncompatibleInput(#[from] NulError),
+    IncompatibleInput(NulError),
     #[error("parser stack overflow")]
     ParserStackOverflow,
     #[error("out of memory")]
     OutOfMemory,
-    #[error("line {0}, column {1}: division by zero")]
-    DivisionByZero(usize, usize),
-    #[error("line {0}, column {1}: syntax error")]
-    SyntaxError(usize, usize),
-    #[error("line {0}, column {1}: arc geometry error")]
-    ArcGeometryError(usize, usize),
-    #[error("line {0}, column {1}: unknown object")]
-    UnknownObject(usize, usize),
-    #[error("line {0}, column {1}: unknown object type")]
-    UnknownObjectType(usize, usize),
-    #[error("line {0}, column {1}: value already set")]
-    ValueAlreadySet(usize, usize),
-    #[error("line {0}, column {1}: value already fixed by prior constraints")]
-    ValueAlreadyFixed(usize, usize),
-    #[error("line {0}, column {1}: use with line-oriented objects only")]
-    OnlyWithLineOrientedObject(usize, usize),
-    #[error("line {0}, column {1}: no prior path points")]
-    NoPriorPathPoints(usize, usize),
-    #[error("line {0}, column {1}: headings should be between 0 and 360")]
-    HeadingOutOfBounds(usize, usize),
-    #[error("line {0}, column {1}: use `at` to position this object")]
-    MissingAt(usize, usize),
-    #[error("line {0}, column {1}: use `from` and `to` to position this object")]
-    MissingFromTo(usize, usize),
-    #[error("line {0}, column {1}: polygon is closed")]
-    ClosedPolygon(usize, usize),
-    #[error("line {0}, column {1}: line start position already fixed")]
-    StartLineAlreadyFixed(usize, usize),
-    #[error("line {0}, column {1}: need at least 3 vertexes in order to close the polygon")]
-    TooFewVertexes(usize, usize),
-    #[error("line {0}, column {1}: location fixed by prior `at`")]
-    PositionAlreadyFixedByAt(usize, usize),
-    #[error("line {0}, column {1}: too many text terms")]
-    AttributeTooManyTerms(usize, usize),
-    #[error("line {0}, column {1}: no text to fit to")]
-    AttributeMissingText(usize, usize),
-    #[error("line {0}, column {1}: unknown color name")]
-    UnknownColorName(usize, usize),
-    #[error("line {0}, column {1}: unknown variable")]
-    UnknownVariable(usize, usize),
-    #[error("line {0}, column {1}: the maximum ordinal is `1000th`")]
-    OrdinalOutOfBounds(usize, usize),
-    #[error("line {0}, column {1}: no prior objects of the same type")]
-    MissingPriorObjectType(usize, usize),
-    #[error("line {0}, column {1}: object is not a line")]
-    NotALine(usize, usize),
-    #[error("line {0}, column {1}: unknown vertex")]
-    VertexUnknown(usize, usize),
-    #[error("line {0}, column {1}: negative sqrt")]
-    NegativeSqrt(usize, usize),
-    #[error("line {0}, column {1}: too many macro arguments - max 9")]
-    MacroTooManyArguments(usize, usize),
-    #[error("line {0}, column {1}: unterminated macro argument list")]
-    MacroUnterminatedArgumentList(usize, usize),
-    #[error("line {0}, column {1}: token is too long - max length 50000 bytes")]
-    TokenTooLong(usize, usize),
-    #[error("line {0}, column {1}: unknown token")]
-    TokenUnknown(usize, usize),
-    #[error("line {0}, column {1}: macros nested too deep")]
-    MacroTooDeep(usize, usize),
-    #[error("line {0}, column {1}: recursive macro definition")]
-    MacroRecursive(usize, usize),
+    #[error("division by zero")]
+    DivisionByZero,
+    #[error("syntax error")]
+    SyntaxError,
+    #[error("arc geometry error")]
+    ArcGeometryError,
+    #[error("unknown object")]
+    UnknownObject,
+    #[error("unknown object type")]
+    UnknownObjectType,
+    #[error("value already set")]
+    ValueAlreadySet,
+    #[error("value already fixed by prior constraints")]
+    ValueAlreadyFixed,
+    #[error("use with line-oriented objects only")]
+    OnlyWithLineOrientedObject,
+    #[error("no prior path points")]
+    NoPriorPathPoints,
+    #[error("headings should be between 0 and 360")]
+    HeadingOutOfBounds,
+    #[error("use `at` to position this object")]
+    MissingAt,
+    #[error("use `from` and `to` to position this object")]
+    MissingFromTo,
+    #[error("polygon is closed")]
+    ClosedPolygon,
+    #[error("line start position already fixed")]
+    StartLineAlreadyFixed,
+    #[error("need at least 3 vertexes in order to close the polygon")]
+    TooFewVertexes,
+    #[error("location fixed by prior `at`")]
+    PositionAlreadyFixedByAt,
+    #[error("too many text terms")]
+    AttributeTooManyTerms,
+    #[error("no text to fit to")]
+    AttributeMissingText,
+    #[error("unknown color name")]
+    UnknownColorName,
+    #[error("unknown variable")]
+    UnknownVariable,
+    #[error("the maximum ordinal is `1000th`")]
+    OrdinalOutOfBounds,
+    #[error("no prior objects of the same type")]
+    MissingPriorObjectType,
+    #[error("object is not a line")]
+    NotALine,
+    #[error("unknown vertex")]
+    VertexUnknown,
+    #[error("negative sqrt")]
+    NegativeSqrt,
+    #[error("too many macro arguments - max 9")]
+    MacroTooManyArguments,
+    #[error("unterminated macro argument list")]
+    MacroUnterminatedArgumentList,
+    #[error("token is too long - max length 50000 bytes")]
+    TokenTooLong,
+    #[error("unknown token")]
+    TokenUnknown,
+    #[error("macros nested too deep")]
+    MacroTooDeep,
+    #[error("recursive macro definition")]
+    MacroRecursive,
 
     /// Raised when the given pikchr input cannot be parsed by Pikchr for an unknown reason.
-    #[error("line {1}, column {2}: {0}")]
-    Other(String, usize, usize),
+    #[error("other")]
+    Other(String),
 }
 
 impl FromStr for PiktError {
     type Err = PiktError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        use PiktError::*;
+        use PiktErrorReason::*;
 
         if s.contains("parser stack overflow") {
-            return Ok(ParserStackOverflow);
+            return Ok(PiktError {
+                line: 0,
+                column: 0,
+                reason: ParserStackOverflow,
+            });
         }
         if s.contains("Out of memory") {
-            return Ok(OutOfMemory);
+            return Ok(PiktError {
+                line: 0,
+                column: 0,
+                reason: OutOfMemory,
+            });
         }
 
         let line_padding = 12;
-        let mut line_num = 0;
-        let mut col_num = 0;
         let mut lines = s.lines();
         let mut message = "unknown error";
+        let mut err = PiktError {
+            line: 0,
+            column: 0,
+            reason: Other(message.to_string()),
+        };
 
         while let Some(line) = lines.next() {
             // markup lines are formatted like:
             //
             // /*    1 */  circle "1"
             if line.starts_with("/*") {
-                line_num = line_num + 1;
+                err.line = err.line + 1;
             }
 
             // caret lines always end with a caret. multiple carets are ignored.
             if line.ends_with('^') {
-                col_num = line.len() + 1 - line_padding;
+                err.column = line.len() + 1 - line_padding;
             }
 
             // the last line always follow a pattern like:
@@ -315,45 +334,53 @@ impl FromStr for PiktError {
             }
         }
 
-        let err = match message {
-            "division by zero" => DivisionByZero(line_num, col_num),
-            "syntax error" => SyntaxError(line_num, col_num),
-            "arc geometry error" => ArcGeometryError(line_num, col_num),
-            "unknown object type" => UnknownObjectType(line_num, col_num),
-            "no such object" => UnknownObject(line_num, col_num),
-            "value is already set" => ValueAlreadySet(line_num, col_num),
-            "value already fixed by prior constraints" => ValueAlreadyFixed(line_num, col_num),
-            "use with line-oriented objects only" => OnlyWithLineOrientedObject(line_num, col_num),
-            "no prior path points" => NoPriorPathPoints(line_num, col_num),
-            "too many path elements" => NoPriorPathPoints(line_num, col_num),
-            "headings should be between 0 and 360" => HeadingOutOfBounds(line_num, col_num),
-            "use \"at\" to position this object" => MissingAt(line_num, col_num),
-            "use \"from\" and \"to\" to position this object" => MissingFromTo(line_num, col_num),
-            "polygon is closed" => ClosedPolygon(line_num, col_num),
-            "need at least 3 vertexes in order to close the polygon" => {
-                TooFewVertexes(line_num, col_num)
-            }
-            "line start location already fixed" => StartLineAlreadyFixed(line_num, col_num),
-            "location fixed by prior \"at\"" => PositionAlreadyFixedByAt(line_num, col_num),
-            "too many text terms" => AttributeTooManyTerms(line_num, col_num),
-            "no text to fit to" => AttributeMissingText(line_num, col_num),
-            "not a known color name" => UnknownColorName(line_num, col_num),
-            "no such variable" => UnknownVariable(line_num, col_num),
-            "value too big - max '1000th'" => OrdinalOutOfBounds(line_num, col_num),
-            "no prior objects of the same type" => MissingPriorObjectType(line_num, col_num),
-            "object is not a line" => NotALine(line_num, col_num),
-            "no such vertex" => VertexUnknown(line_num, col_num),
-            "sqrt of negative value" => NegativeSqrt(line_num, col_num),
-            "too many macro arguments - max 9" => MacroTooManyArguments(line_num, col_num),
-            "unterminated macro argument list" => MacroUnterminatedArgumentList(line_num, col_num),
-            "token is too long - max length 50000 bytes" => TokenTooLong(line_num, col_num),
-            "unrecognized token" => TokenUnknown(line_num, col_num),
-            "macros nested too deep" => MacroTooDeep(line_num, col_num),
-            "recursive macro definition" => MacroRecursive(line_num, col_num),
-            msg => Other(msg.to_string(), line_num, col_num),
+        err.reason = match message {
+            "division by zero" => DivisionByZero,
+            "syntax error" => SyntaxError,
+            "arc geometry error" => ArcGeometryError,
+            "unknown object type" => UnknownObjectType,
+            "no such object" => UnknownObject,
+            "value is already set" => ValueAlreadySet,
+            "value already fixed by prior constraints" => ValueAlreadyFixed,
+            "use with line-oriented objects only" => OnlyWithLineOrientedObject,
+            "no prior path points" => NoPriorPathPoints,
+            "too many path elements" => NoPriorPathPoints,
+            "headings should be between 0 and 360" => HeadingOutOfBounds,
+            "use \"at\" to position this object" => MissingAt,
+            "use \"from\" and \"to\" to position this object" => MissingFromTo,
+            "polygon is closed" => ClosedPolygon,
+            "need at least 3 vertexes in order to close the polygon" => TooFewVertexes,
+            "line start location already fixed" => StartLineAlreadyFixed,
+            "location fixed by prior \"at\"" => PositionAlreadyFixedByAt,
+            "too many text terms" => AttributeTooManyTerms,
+            "no text to fit to" => AttributeMissingText,
+            "not a known color name" => UnknownColorName,
+            "no such variable" => UnknownVariable,
+            "value too big - max '1000th'" => OrdinalOutOfBounds,
+            "no prior objects of the same type" => MissingPriorObjectType,
+            "object is not a line" => NotALine,
+            "no such vertex" => VertexUnknown,
+            "sqrt of negative value" => NegativeSqrt,
+            "too many macro arguments - max 9" => MacroTooManyArguments,
+            "unterminated macro argument list" => MacroUnterminatedArgumentList,
+            "token is too long - max length 50000 bytes" => TokenTooLong,
+            "unrecognized token" => TokenUnknown,
+            "macros nested too deep" => MacroTooDeep,
+            "recursive macro definition" => MacroRecursive,
+            msg => Other(msg.to_string()),
         };
 
         Ok(err)
+    }
+}
+
+impl From<NulError> for PiktError {
+    fn from(err: NulError) -> Self {
+        Self {
+            line: 0,
+            column: 0,
+            reason: PiktErrorReason::IncompatibleInput(err),
+        }
     }
 }
 
@@ -390,7 +417,11 @@ mod tests {
 
         assert_eq!(
             actual.expect_err("expected unknown token"),
-            PiktError::TokenUnknown(1, 5)
+            PiktError {
+                line: 1,
+                column: 5,
+                reason: PiktErrorReason::TokenUnknown,
+            }
         );
     }
 
@@ -404,7 +435,11 @@ mod tests {
 
         assert_eq!(
             actual.expect_err("expected div by zero err"),
-            PiktError::DivisionByZero(2, 36)
+            PiktError {
+                line: 2,
+                column: 36,
+                reason: PiktErrorReason::DivisionByZero,
+            }
         );
     }
 
@@ -416,7 +451,11 @@ mod tests {
 
         assert_eq!(
             actual.expect_err("expected syntax error"),
-            PiktError::SyntaxError(1, 8)
+            PiktError {
+                line: 1,
+                column: 8,
+                reason: PiktErrorReason::SyntaxError,
+            }
         );
     }
 
@@ -428,7 +467,11 @@ mod tests {
 
         assert_eq!(
             actual.expect_err("expected unknown object"),
-            PiktError::UnknownObject(1, 12)
+            PiktError {
+                line: 1,
+                column: 12,
+                reason: PiktErrorReason::UnknownObject,
+            }
         );
     }
 
