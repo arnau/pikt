@@ -38,4 +38,7 @@ jobs:
         toolchain: stable
         profile: minimal
         override: true
+    - name: Install Windows dependencies
+      if: runner.os == 'windows-latest'
+      run: choco install llvm -y
     - run: cargo test --all
