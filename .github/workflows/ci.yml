@@ -20,7 +20,7 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           args: --all-targets -- -D warnings
   test:
-    name: CI
+    name: Test
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -38,6 +38,10 @@ jobs:
         toolchain: stable
         profile: minimal
         override: true
+    # Workaround to resolve link error with C:\msys64\mingw64\bin\libclang.dll
+    - name: Remove msys64
+      if: runner.os == 'Windows'
+      run: Remove-Item -LiteralPath "C:\msys64\" -Force -Recurse
     - name: Install Windows dependencies
       if: runner.os == 'windows-latest'
       run: choco install llvm -y
