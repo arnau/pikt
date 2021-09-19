@@ -18,7 +18,7 @@
 //!
 //! ## Example
 //!
-//! ```no_run
+//! ```ignore
 //! let input = "box \"example\"";
 //! let mut width: c_int = 0;
 //! let mut height: c_int = 0;

@@ -86,7 +86,7 @@ impl OptionsBuilder {
 
     pub fn classes(&mut self, values: &[&str]) {
         let s = values.join(" ");
-        self.class.push_str(" ");
+        self.class.push(' ');
         self.class.push_str(&s);
     }
 
@@ -303,7 +303,7 @@ impl FromStr for PiktError {
         }
 
         let line_padding = 12;
-        let mut lines = s.lines();
+        let lines = s.lines();
         let mut message = "unknown error";
         let mut err = PiktError {
             line: 0,
@@ -311,12 +311,12 @@ impl FromStr for PiktError {
             reason: Other(message.to_string()),
         };
 
-        while let Some(line) = lines.next() {
+        for line in lines {
             // markup lines are formatted like:
             //
             // /*    1 */  circle "1"
             if line.starts_with("/*") {
-                err.line = err.line + 1;
+                err.line += 1;
             }
 
             // caret lines always end with a caret. multiple carets are ignored.
